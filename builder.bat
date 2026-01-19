@@ -1,0 +1,1 @@
+dotnet publish DeathMustDieSaveEditer.WPF/DeathMustDieSaveEditor.WPF.csproj -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
