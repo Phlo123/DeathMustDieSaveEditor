@@ -132,13 +132,28 @@ namespace DeathMustDieSaveEditor.Core.Models.SaveStructure
                 return new List<Item>();
             }
 
-            var res = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json);
-            if (res == null || res.EquipmentState == null || res.EquipmentState.Items == null)
+            try
             {
-                return new List<Item>();
+                // Try to deserialize as Wrapper (Legacy format)
+                var res = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json);
+                if (res != null && res.EquipmentState != null)
+                {
+                    return res.EquipmentState.Items ?? new List<Item>();
+                }
+
+                // Try to deserialize directly as EquipmentState (New format)
+                var resDirect = JsonConvert.DeserializeObject<EquipmentState>(charEquipped.Json);
+                if (resDirect != null && resDirect.Items != null)
+                {
+                    return resDirect.Items;
+                }
+            }
+            catch
+            {
+                // Fallback to empty list on error
             }
 
-            return res.EquipmentState.Items;
+            return new List<Item>();
         }
 
         public void SetEquippedItems(string charecterCode, IEnumerable<Item> items)
@@ -152,21 +167,43 @@ namespace DeathMustDieSaveEditor.Core.Models.SaveStructure
                 return;
             }
 
-            var res = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json);
-            if (res == null)
+            bool useWrapper = false;
+
+            if (!string.IsNullOrEmpty(charEquipped.Json))
             {
-                res = new EquipmentStateWrapper { EquipmentState = new EquipmentState() };
+                try
+                {
+                    var checkWrapper = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json);
+                    if (checkWrapper != null && checkWrapper.EquipmentState != null)
+                    {
+                        useWrapper = true;
+                    }
+                }
+                catch { }
+            }
+            else
+            {
+                // Check other characters to guess format
+                useWrapper = this.InventoryData.Any(x => !string.IsNullOrEmpty(x.Json) && x.Json.Contains("\"EquipmentState\""));
             }
 
-            if (res.EquipmentState == null)
+            if (useWrapper)
             {
-                res.EquipmentState = new EquipmentState();
+                var res = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json) ?? new EquipmentStateWrapper();
+                if (res.EquipmentState == null)
+                {
+                    res.EquipmentState = new EquipmentState();
+                }
+
+                res.EquipmentState.Items = items.ToList();
+                charEquipped.Json = JsonConvert.SerializeObject(res);
             }
-
-            res.EquipmentState.Items = items.ToList();
-
-            var serializedEquippment = JsonConvert.SerializeObject(res);
-            charEquipped.Json = serializedEquippment;
+            else
+            {
+                var res = JsonConvert.DeserializeObject<EquipmentState>(charEquipped.Json) ?? new EquipmentState();
+                res.Items = items.ToList();
+                charEquipped.Json = JsonConvert.SerializeObject(res);
+            }
         }
     }
 }
