@@ -123,17 +123,46 @@ namespace DeathMustDieSaveEditor.Core.Models.SaveStructure
 
         public IEnumerable<Item> GetEquippedItems(string charecterCode)
         {
-            var charEquipped = this.InventoryData.Where(x => x.CharacterCode == charecterCode).FirstOrDefault();
+            var charEquipped = this.InventoryData
+                .Where(x => string.Equals(x.CharacterCode, charecterCode, StringComparison.OrdinalIgnoreCase))
+                .LastOrDefault();
+
+            if (charEquipped == null || string.IsNullOrEmpty(charEquipped.Json))
+            {
+                return new List<Item>();
+            }
 
             var res = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json);
+            if (res == null || res.EquipmentState == null || res.EquipmentState.Items == null)
+            {
+                return new List<Item>();
+            }
+
             return res.EquipmentState.Items;
         }
 
         public void SetEquippedItems(string charecterCode, IEnumerable<Item> items)
         {
-            var charEquipped = this.InventoryData.Where(x => x.CharacterCode == charecterCode).FirstOrDefault();
+            var charEquipped = this.InventoryData
+                .Where(x => string.Equals(x.CharacterCode, charecterCode, StringComparison.OrdinalIgnoreCase))
+                .LastOrDefault();
+
+            if (charEquipped == null)
+            {
+                return;
+            }
 
             var res = JsonConvert.DeserializeObject<EquipmentStateWrapper>(charEquipped.Json);
+            if (res == null)
+            {
+                res = new EquipmentStateWrapper { EquipmentState = new EquipmentState() };
+            }
+
+            if (res.EquipmentState == null)
+            {
+                res.EquipmentState = new EquipmentState();
+            }
+
             res.EquipmentState.Items = items.ToList();
 
             var serializedEquippment = JsonConvert.SerializeObject(res);
