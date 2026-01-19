@@ -24,8 +24,18 @@ namespace DeathMustDieSaveEditor.Core.Logic
             string pathVariant1 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), SaveRelevantPath, SaveName);
             string pathVariant2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), SaveRelevantPath, SaveName);
             string pathVariant3 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)+"Low", SaveRelevantPath, SaveName);
+            string pathVariant4 = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Saves", SaveName);
+            string pathVariant5 = Path.Combine(Directory.GetCurrentDirectory(), "Saves", SaveName);
 
-            if (File.Exists(pathVariant1))
+            if (File.Exists(pathVariant4))
+            {
+                return pathVariant4;
+            }
+            else if (File.Exists(pathVariant5))
+            {
+                return pathVariant5;
+            }
+            else if (File.Exists(pathVariant1))
             {
                 return pathVariant1;
             }
