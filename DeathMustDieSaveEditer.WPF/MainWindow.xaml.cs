@@ -200,7 +200,7 @@ namespace DeathMustDieSaveEditor.WPF
             else
             {
                 this.AttributeHelper.DeleteAllAttributeLines();
-                this.ItemTypeNameLabel.Content = "No item is equipped there";
+                this.ItemTypeNameLabel.Content = $"No item is equipped there (Loaded {this.LoadedItems?.Count ?? 0} items for {this.SelectedClass}, Clicked: {selection})";
             }
         }
 
